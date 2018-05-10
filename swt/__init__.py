@@ -1,0 +1,1 @@
+from .swt import main
