@@ -111,7 +111,9 @@ def apply_swt(im: Image, edges: Image, gradients: Gradients, dark_on_bright: boo
     swt = np.squeeze(np.ones_like(im)) * np.Infinity
 
     # For each pixel, let's obtain the normal direction of its gradient.
-    inv_norms = 1. / np.sqrt(gradients.x ** 2 + gradients.y ** 2)
+    norms = np.sqrt(gradients.x ** 2 + gradients.y ** 2)
+    norms[norms == 0] = 1
+    inv_norms = 1. / norms
     directions = Gradients(x=gradients.x * inv_norms, y=gradients.y * inv_norms)
 
     # We keep track of all the rays found in the image.
@@ -286,7 +288,7 @@ def minimum_area_bounding_box(points: np.ndarray) -> np.ndarray:
     # edge of the convex hull. (TODO: Proof?)
     # This reduces the number of orientations we have to try.
     hull = ConvexHull(points)
-    for i in range(len(hull.vertices)):
+    for i in range(len(hull.vertices)-1):
         # Select two vertex pairs and obtain their orientation to the X axis.
         a = points[hull.vertices[i]]
         b = points[hull.vertices[i + 1]]
@@ -341,7 +343,7 @@ def main():
     parser = SwtArgParser()
     args = parser.parse_args()
     if not os.path.exists(args.image):
-        parser.error(f'Image file does not exist: {args.image}')
+        parser.error('Image file does not exist: {}'.format(args.image))
 
     # Open the image and obtain a grayscale representation.
     im = open_grayscale(args.image)  # TODO: Magic numbers
@@ -357,13 +359,13 @@ def main():
     # theta = np.abs(theta)
 
     # Apply the Stroke Width Transformation.
-    swt = apply_swt(im, edges, gradients, True)  # TODO: Magic number
+    swt = apply_swt(im, edges, gradients, not args.bright_on_dark)  # TODO: Magic number
 
     # Apply Connected Components labelling
     labels, components = connected_components(swt)  # TODO: Magic number
 
     # Discard components that are likely not text
-    labels, components = discard_non_text(swt, labels, components)
+    # TODO: labels, components = discard_non_text(swt, labels, components)
 
     labels = labels.astype(np.float32) / labels.max()
     l = (labels*255.).astype(np.uint8)

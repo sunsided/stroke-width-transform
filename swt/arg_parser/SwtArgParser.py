@@ -10,6 +10,9 @@ class SwtArgParser(argparse.ArgumentParser):
         self.add_argument('image', metavar='IMAGE',
                           help='The image file to process.')
 
+        self.add_argument('--bright_on_dark', default=False, action='store_true',
+                          help='Enables bright on dark selection.')
+
         #self.add_argument(
         #    "--validation_dir", "-vd", default="/tmp",
         #    help="[default: %(default)s] The location of the validation data.",
