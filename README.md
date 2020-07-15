@@ -14,7 +14,7 @@ Given the following image ...
 
 ![](images/text.jpg)
 
-... it will show these connected components (brightness by ID):
+... it will show these connected components:
 
 ![](.readme/connected-components.png)
 
