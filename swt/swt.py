@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from scipy.spatial import ConvexHull
 from .arg_parser import SwtArgParser
+from .id_colors import build_colormap
 
 
 Image = np.ndarray
@@ -346,11 +347,11 @@ def main():
         parser.error('Image file does not exist: {}'.format(args.image))
 
     # Open the image and obtain a grayscale representation.
-    im = open_grayscale(args.image)  # TODO: Magic numbers
+    im = open_grayscale(args.image)  # TODO: Magic numbers hidden in arguments
 
     # Find the edges in the image and the gradients.
-    edges = get_edges(im)  # TODO: Magic numbers
-    gradients = get_gradients(im)  # TODO: Magic numbers
+    edges = get_edges(im)  # TODO: Magic numbers hidden in arguments
+    gradients = get_gradients(im)  # TODO: Magic numbers hidden in arguments
 
     # TODO: Gradient directions are only required for checking if two edges are in opposing directions. We can use the gradients directly.
     # Obtain the gradient directions. Due to symmetry, we treat opposing
@@ -359,16 +360,19 @@ def main():
     # theta = np.abs(theta)
 
     # Apply the Stroke Width Transformation.
-    swt = apply_swt(im, edges, gradients, not args.bright_on_dark)  # TODO: Magic number
+    swt = apply_swt(im, edges, gradients, not args.bright_on_dark)
 
     # Apply Connected Components labelling
-    labels, components = connected_components(swt)  # TODO: Magic number
+    labels, components = connected_components(swt)  # TODO: Magic numbers hidden in arguments
 
     # Discard components that are likely not text
     # TODO: labels, components = discard_non_text(swt, labels, components)
 
     labels = labels.astype(np.float32) / labels.max()
     l = (labels*255.).astype(np.uint8)
+
+    l = cv2.cvtColor(l, cv2.COLOR_GRAY2RGB)
+    l = cv2.LUT(l, build_colormap())
     cv2.imwrite('comps.png', l)
 
     swt = (255*swt/swt.max()).astype(np.uint8)
@@ -380,7 +384,7 @@ def main():
     # cv2.imshow('Y', gradients.y)
     # cv2.imshow('Theta', theta)
     cv2.imshow('Stroke Width Transformed', swt)
-    cv2.imshow('Connected Components', labels)
+    cv2.imshow('Connected Components', l)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
